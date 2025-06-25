@@ -1,4 +1,4 @@
-name: Run JUnit Tests with Maven
+name: Run JUnit Tests with Ant
 
 on:
   push:
@@ -7,11 +7,11 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
+  build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Java
@@ -20,5 +20,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Run Maven tests
-        run: mvn test
+      - name: Set up ANT
+        uses: dwyl/setup-ant@v1
+
+      - name: Run Ant Tests
+        run: ant test
