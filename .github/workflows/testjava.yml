@@ -1,0 +1,27 @@
+name: Run JUnit Tests (Ant)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'       
+          distribution: 'temurin'  
+
+      - name: Run Ant build
+        run: ant -noinput -buildfile build.xml
+
+      - name: Run JUnit Tests
+        run: ant test
