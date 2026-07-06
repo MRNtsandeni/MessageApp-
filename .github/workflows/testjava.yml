@@ -18,13 +18,24 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21' # <-- Changed from 17 to 21
+          java-version: '21'
 
+      # Step to download the missing json-simple library
+      - name: Download JSON Simple Dependency
+        run: |
+          mkdir -p lib
+          curl -sL https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar -o lib/json-simple-1.1.1.jar
+          # Copy it into the local project structure where NetBeans usually looks
+          mkdir -p lib nbproject/private
+
+      # Execute the compiler and test suite
       - name: Run Ant Tests
         run: |
           if [ -f "build.xml" ]; then
-            ant test
+            ant -Dfile.reference.json-simple-1.1.1.jar=lib/json-simple-1.1.1.jar test
           else
             cd *_poe-* 2>/dev/null || cd *[Mm]essage* 2>/dev/null || cd * 2>/dev/null
-            ant test
+            mkdir -p lib
+            curl -sL https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar -o lib/json-simple-1.1.1.jar
+            ant -Dfile.reference.json-simple-1.1.1.jar=lib/json-simple-1.1.1.jar test
           fi
