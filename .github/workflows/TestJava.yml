@@ -20,26 +20,12 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      # 1. Download the missing JSON library into a clean local directory
-      - name: Download JSON Simple Dependency
-        run: |
-          mkdir -p lib
-          curl -sL https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar -o lib/json-simple-1.1.1.jar
-
-      # 2. Automatically fix the broken Windows paths inside NetBeans property files
-      - name: Repair NetBeans Project Properties Classpath
-        run: |
-          # Find project.properties files wherever they are in the workspace
-          find . -name "project.properties" -exec sed -i 's|file.reference.json-simple.*=.*|file.reference.json-simple-1.1.1__1_.jar=lib/json-simple-1.1.1.jar|g' {} +
-          find . -name "project.properties" -exec sed -i 's|file.reference.json-simple-1.1.1.jar=.*|file.reference.json-simple-1.1.1.jar=lib/json-simple-1.1.1.jar|g' {} +
-
-      # 3. Let NetBeans handle the build natively now that the path is repaired
+      # Run Ant natively using the repaired properties
       - name: Run Ant Tests
         run: |
           if [ -f "build.xml" ]; then
             ant test
           else
-            # Fallback if your NetBeans project is nested inside a subfolder
             cd *_poe-* 2>/dev/null || cd *[Mm]essage* 2>/dev/null || cd * 2>/dev/null
             ant test
           fi
