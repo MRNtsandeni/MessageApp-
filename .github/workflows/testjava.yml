@@ -18,14 +18,13 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21' # <-- Changed from 17 to 21
 
       - name: Run Ant Tests
         run: |
           if [ -f "build.xml" ]; then
             ant test
           else
-            # If the build.xml is inside a subdirectory (e.g. NetBeans project folder)
             cd *_poe-* 2>/dev/null || cd *[Mm]essage* 2>/dev/null || cd * 2>/dev/null
             ant test
           fi
