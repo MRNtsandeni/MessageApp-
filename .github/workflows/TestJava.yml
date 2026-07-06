@@ -1,4 +1,4 @@
-name: Run JUnit Tests
+name: Run JUnit Tests with Ant
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,28 +20,26 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      # 1. Download the missing JSON library directly into the workspace
-      - name: Fetch JSON-Simple JAR
+      # 1. Download the missing JSON library into a clean local directory
+      - name: Download JSON Simple Dependency
         run: |
           mkdir -p lib
-          curl -sL https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar -o lib/json-simple.jar
+          curl -sL https://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar -o lib/json-simple-1.1.1.jar
 
-      # 2. Compile all java source files manually using the library
-      - name: Compile Java Code
+      # 2. Automatically fix the broken Windows paths inside NetBeans property files
+      - name: Repair NetBeans Project Properties Classpath
         run: |
-          mkdir -p build/classes
-          javac -cp "lib/json-simple.jar" -d build/classes src/st10444823/prog5121/a1/*.java
+          # Find project.properties files wherever they are in the workspace
+          find . -name "project.properties" -exec sed -i 's|file.reference.json-simple.*=.*|file.reference.json-simple-1.1.1__1_.jar=lib/json-simple-1.1.1.jar|g' {} +
+          find . -name "project.properties" -exec sed -i 's|file.reference.json-simple-1.1.1.jar=.*|file.reference.json-simple-1.1.1.jar=lib/json-simple-1.1.1.jar|g' {} +
 
-      # 3. Build and execute tests using the standard built-in platform launcher
-      - name: Run JUnit Tests
+      # 3. Let NetBeans handle the build natively now that the path is repaired
+      - name: Run Ant Tests
         run: |
-          echo "Compiling and launching tests..."
-          # This compiles your test files if they exist in your standard test directory
-          if [ -d "test" ]; then
-            javac -cp "lib/json-simple.jar:build/classes" -d build/classes test/st10444823/prog5121/a1/*.java
+          if [ -f "build.xml" ]; then
+            ant test
+          else
+            # Fallback if your NetBeans project is nested inside a subfolder
+            cd *_poe-* 2>/dev/null || cd *[Mm]essage* 2>/dev/null || cd * 2>/dev/null
+            ant test
           fi
-          
-          # Note: If your NetBeans test target runs via Ant and you prefer to try a clean execution:
-          # We fall back to running the clean ant compiler target bypassing properties
-          ant compile-test || echo "No test compilation needed"
-          ant test || echo "Execution complete"
